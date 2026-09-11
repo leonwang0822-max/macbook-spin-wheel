@@ -55,6 +55,7 @@
   let isQuickSpin = false;
   let soundEnabled = true;
   let currentWager = 1;
+  let godModeActive = false;
 
   let stats = {
     won: 0,
@@ -425,15 +426,16 @@
 
     commentaryEl.textContent = isQuickSpin 
       ? `⚡ Quick-spinning for ${formatShort(currentWager * 2)} MacBooks...` 
-      : (window.alwaysWin ? `🎰 God Mode Active: Guaranteed Win!` : `Gambling ${formatShort(currentWager)} MacBook(s)... Looking promising!`);
+      : (godModeActive ? `🎰 God Mode Active: Guaranteed Win!` : `Gambling ${formatShort(currentWager)} MacBook(s)... Looking promising!`);
 
     stats.spins++;
     spinCountEl.textContent = stats.spins.toLocaleString();
 
-    // Check for cheat mode (window.alwaysWin)
+    // Slices: Win (0, 2, 4), Lose (1, 3, 5)
+    // ONLY wins if enableGodMode() was called!
     const winSlices = [0, 2, 4];
     const loseSlices = [1, 3, 5];
-    const targetSlice = window.alwaysWin 
+    const targetSlice = godModeActive 
       ? winSlices[Math.floor(Math.random() * winSlices.length)]
       : loseSlices[Math.floor(Math.random() * loseSlices.length)];
 
@@ -645,29 +647,23 @@
       e.preventDefault();
       spin();
     }
-    // Press 'W' to toggle win mode!
-    if ((e.key === 'w' || e.key === 'W') && !['INPUT', 'TEXTAREA'].includes(document.activeElement.tagName)) {
-      window.alwaysWin = !window.alwaysWin;
-      commentaryEl.textContent = window.alwaysWin 
-        ? '🍏 CHEAT CODE ENABLED: You will now WIN every spin!' 
-        : '🔴 CHEAT DISABLED: Back to 100% loss!';
-      console.log('Always Win Mode:', window.alwaysWin);
-    }
   });
 
-  // Global console hooks
-  window.alwaysWin = false;
-  window.enableGodMode = function() {
-    window.alwaysWin = true;
-    commentaryEl.textContent = '🍏 CHEAT CODE ENABLED: You will now WIN every spin!';
-    console.log('%c🍏 ALWAYS WIN ACTIVATED! Spin the wheel now! 🍏', 'color: #30d158; font-size: 16px; font-weight: bold;');
-    return 'Always Win is now ON!';
+  // Global console hooks (ONLY way to activate God Mode!)
+  window.enableGodMode = function () {
+    godModeActive = true;
+    commentaryEl.textContent = '🍏 GOD MODE ACTIVATED: 100% Guaranteed Wins!';
+    commentaryEl.style.color = '#30d158';
+    console.log('%c🍏 GOD MODE ACTIVATED: You will now WIN every single spin! 🍏', 'color: #30d158; font-size: 16px; font-weight: bold;');
+    return '🍏 God Mode is now ACTIVE! Every spin is guaranteed to WIN.';
   };
-  window.disableGodMode = function() {
-    window.alwaysWin = false;
-    commentaryEl.textContent = '🔴 CHEAT DISABLED: Back to 100% loss!';
-    console.log('Always Win disabled.');
-    return 'Always Win is now OFF!';
+
+  window.disableGodMode = function () {
+    godModeActive = false;
+    commentaryEl.textContent = '🔴 GOD MODE DISABLED: Back to 100% loss!';
+    commentaryEl.style.color = '#ff453a';
+    console.log('God Mode disabled.');
+    return '🔴 God Mode is now DISABLED. Back to 100% loss.';
   };
 
   // Initialize
