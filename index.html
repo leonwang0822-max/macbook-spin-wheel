@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title> MacBook Lucky Wheel - 100% Legit</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💻</text></svg>">
+</head>
+<body>
+  <div class="background-glow"></div>
+
+  <main class="container">
+    <header class="header">
+      <div class="badge"> Apple Official* Giveaway</div>
+      <h1 class="title">Win 2 MacBooks!</h1>
+      <p class="subtitle">Spin the wheel of fortune. Take your chance to double your tech stack!</p>
+      <p class="disclaimer">*Definitely not rigged. Terms & conditions apply.</p>
+    </header>
+
+    <!-- Score & Debt Board -->
+    <section class="stats-board">
+      <div class="stat-card">
+        <span class="stat-label">MacBooks Won</span>
+        <span class="stat-value win-stat" id="wonCount">0</span>
+      </div>
+      <div class="stat-card debt-card">
+        <span class="stat-label">MacBook Debt Owed</span>
+        <span class="stat-value debt-stat" id="debtCount">0</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-label">Total Spins</span>
+        <span class="stat-value" id="spinCount">0</span>
+      </div>
+    </section>
+
+    <!-- Wager / Bet Controls -->
+    <section class="wager-section">
+      <div class="wager-header">
+        <span class="wager-title">💻 MacBooks To Gamble:</span>
+        <span class="wager-multiplier-hint">Potential Win: <strong id="potentialWinText" class="win-stat">2 MacBooks</strong></span>
+      </div>
+      <div class="wager-input-row">
+        <input type="number" id="wagerInput" class="wager-input" value="1" min="1" max="1000000000000" step="1">
+        <div class="quick-bet-buttons">
+          <button class="bet-chip active" data-amount="1">1</button>
+          <button class="bet-chip" data-amount="10">10</button>
+          <button class="bet-chip" data-amount="100">100</button>
+          <button class="bet-chip" data-amount="1000">1K</button>
+          <button class="bet-chip" data-amount="100000">100K</button>
+          <button class="bet-chip" data-amount="1000000">1M</button>
+          <button class="bet-chip all-in-chip" id="allInBtn">🔥 ALL IN</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Spin Wheel Section -->
+    <section class="wheel-section">
+      <div class="wheel-wrapper">
+        <!-- Center Pointer / Ticker -->
+        <div class="pointer-container">
+          <div class="wheel-pointer"></div>
+        </div>
+
+        <!-- Wheel Canvas -->
+        <canvas id="wheelCanvas" width="460" height="460"></canvas>
+
+        <!-- Center Hub Spin Button -->
+        <button id="spinBtn" class="center-spin-btn" title="Click to Spin!">
+          <span class="spin-text">SPIN</span>
+          <span class="spin-subtext" id="spinSubtext">1 MB</span>
+        </button>
+      </div>
+
+      <!-- Action Button for Mobile / Accessibility -->
+      <div class="actions">
+        <button id="mainSpinBtn" class="btn-primary">
+          <span class="btn-icon">🎰</span> Spin Wheel Now
+        </button>
+        <button id="quickSpinBtn" class="btn-secondary toggle-btn" title="Toggle Quick Spins">
+          ⚡ Quick Spin: OFF
+        </button>
+        <button id="soundToggleBtn" class="btn-secondary" title="Toggle Sound">
+          🔊
+        </button>
+      </div>
+    </section>
+
+    <!-- Live Reaction Feed -->
+    <section class="ticker-box">
+      <p id="commentary" class="commentary-text">Ready to spin? You could be holding 2 brand new MacBooks in seconds!</p>
+    </section>
+  </main>
+
+  <!-- Loss Drama Modal -->
+  <div id="lossModal" class="modal-overlay hidden">
+    <div class="modal-card">
+      <div class="modal-icon">💸</div>
+      <h2 class="modal-title">OH NO!</h2>
+      <p class="modal-subtitle">You landed on:</p>
+      <div class="modal-result-badge">LOSE 1 MACBOOK</div>
+      
+      <p class="modal-message" id="modalMessage">
+        Apple Collections Department has logged your debt. Please surrender 1 MacBook immediately.
+      </p>
+
+      <div class="modal-quote" id="modalQuote">
+        "One more spin and you can easily win it back!" — totally unbiased advice
+      </div>
+
+      <div class="modal-actions">
+        <button id="modalSpinAgainBtn" class="btn-primary pulse">
+          Spin Again (Double or Nothing!)
+        </button>
+        <button id="modalCloseBtn" class="btn-secondary">
+          Accept My Sad Reality
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
