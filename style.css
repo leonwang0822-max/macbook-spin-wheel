@@ -505,6 +505,41 @@ body {
   text-transform: uppercase;
 }
 
+/* Win Modal Specific Styles */
+.win-modal-card {
+  border-color: rgba(48, 209, 88, 0.4);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8), 0 0 40px rgba(48, 209, 88, 0.25);
+}
+
+.win-modal-title {
+  color: var(--win-green);
+}
+
+.win-badge {
+  background: rgba(48, 209, 88, 0.15);
+  color: var(--win-green);
+  border-color: var(--win-green);
+}
+
+.win-btn {
+  background: linear-gradient(135deg, #30d158 0%, #248a3d 100%);
+  box-shadow: 0 4px 16px rgba(48, 209, 88, 0.35);
+}
+
+.win-btn:hover {
+  box-shadow: 0 6px 22px rgba(48, 209, 88, 0.5);
+}
+
+/* Confetti overlay */
+#confettiCanvas {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  pointer-events: none;
+  z-index: 99;
+}
+
 .modal-message {
   font-size: 0.95rem;
   line-height: 1.5;

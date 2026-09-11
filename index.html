@@ -119,6 +119,36 @@
     </div>
   </div>
 
+  <!-- Confetti Canvas -->
+  <canvas id="confettiCanvas"></canvas>
+
+  <!-- Win Modal -->
+  <div id="winModal" class="modal-overlay hidden">
+    <div class="modal-card win-modal-card">
+      <div class="modal-icon">🎉</div>
+      <h2 class="modal-title win-modal-title">BIG WINNER!</h2>
+      <p class="modal-subtitle">You struck gold! You won:</p>
+      <div class="modal-result-badge win-badge" id="winResultBadge">WIN 2 MACBOOKS</div>
+      
+      <p class="modal-message" id="winModalMessage">
+        Apple Cupertino Headquarters has dispatched your brand new MacBooks!
+      </p>
+
+      <div class="modal-quote">
+        "Pure skill. The house didn't see that coming!" — A Very Real Winner
+      </div>
+
+      <div class="modal-actions">
+        <button id="winModalSpinAgainBtn" class="btn-primary win-btn pulse">
+          Spin Again & Win More!
+        </button>
+        <button id="winModalCloseBtn" class="btn-secondary">
+          Admire My Laptops
+        </button>
+      </div>
+    </div>
+  </div>
+
   <script src="script.js"></script>
 </body>
 </html>

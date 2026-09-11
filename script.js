@@ -1,10 +1,10 @@
-// Rigged MacBook Spin Wheel Game
-// Features: Variable MacBook Wagers (up to millions!), Quick Spins, Dynamic Canvas Rendering, 100% Rigged Loss
+// MacBook Spin Wheel Game - FAIR (NOT RIGGED)
+// Features: True 50/50 Odds, Confetti Celebration, Variable Wagers, Quick Spins, Web Audio
 
 (function () {
   'use strict';
 
-  // --- Wheel Configuration ---
+  // --- Elements ---
   const canvas = document.getElementById('wheelCanvas');
   const ctx = canvas.getContext('2d');
   const pointerEl = document.querySelector('.wheel-pointer');
@@ -25,12 +25,24 @@
   const spinCountEl = document.getElementById('spinCount');
   const commentaryEl = document.getElementById('commentary');
 
-  const modal = document.getElementById('lossModal');
-  const modalResultBadge = document.querySelector('.modal-result-badge');
-  const modalMessage = document.getElementById('modalMessage');
-  const modalQuote = document.getElementById('modalQuote');
-  const modalSpinAgainBtn = document.getElementById('modalSpinAgainBtn');
-  const modalCloseBtn = document.getElementById('modalCloseBtn');
+  // Loss Modal
+  const lossModal = document.getElementById('lossModal');
+  const lossModalResultBadge = lossModal.querySelector('.modal-result-badge');
+  const lossModalMessage = document.getElementById('modalMessage');
+  const lossModalQuote = document.getElementById('modalQuote');
+  const lossModalSpinAgainBtn = document.getElementById('modalSpinAgainBtn');
+  const lossModalCloseBtn = document.getElementById('modalCloseBtn');
+
+  // Win Modal
+  const winModal = document.getElementById('winModal');
+  const winResultBadge = document.getElementById('winResultBadge');
+  const winModalMessage = document.getElementById('winModalMessage');
+  const winModalSpinAgainBtn = document.getElementById('winModalSpinAgainBtn');
+  const winModalCloseBtn = document.getElementById('winModalCloseBtn');
+
+  // Confetti Canvas
+  const confettiCanvas = document.getElementById('confettiCanvas');
+  const confettiCtx = confettiCanvas ? confettiCanvas.getContext('2d') : null;
 
   const NUM_SLICES = 6;
   const SLICE_ANGLE = (2 * Math.PI) / NUM_SLICES;
@@ -50,6 +62,7 @@
     spins: 0
   };
 
+  // Slices: 0: WIN, 1: LOSE, 2: WIN, 3: LOSE, 4: WIN, 5: LOSE
   const BASE_SLICES = [
     { type: 'win', bg: '#248a3d', textCol: '#ffffff' },
     { type: 'lose', bg: '#b81d24', textCol: '#ffffff' },
@@ -92,16 +105,15 @@
     "Genius Bar has been notified. You are no longer permitted within 500 feet of an Apple Store.",
     "Apple Repo drone is currently hovering outside your window waiting for your MacBooks.",
     "Your debt has been bundled into high-yield Apple Silicon derivative bonds.",
-    "You now officially owe Apple more laptops than exist in your entire zip code.",
-    "Cook's Law: The probability of winning MacBooks approaches zero as spins approach infinity."
+    "You now officially owe Apple more laptops than exist in your entire neighborhood.",
+    "Better spin again to wipe that debt clean!"
   ];
 
   const FUNNY_QUOTES = [
     "\"99.9% of MacBook spinners quit right before winning two MacBooks.\" — Wall Street Proverb",
-    "\"The next spin is mathematically guaranteed to hit Win. Just one more spin!\" — Trust Me Bro",
-    "\"Double or nothing is the only mathematically sound way out of this hole.\" — Financial 'Advisor'",
-    "\"Don't walk away in debt, spin until you break even!\"",
-    "\"Steve Jobs wouldn't want you to give up now.\""
+    "\"Double or nothing is the fastest way back to glory!\" — Trust Me Bro",
+    "\"A true gambler never stops while behind!\"",
+    "\"Fortune favors the bold.\""
   ];
 
   // --- Web Audio Synthesis ---
@@ -140,6 +152,44 @@
 
       osc.start();
       osc.stop(audioCtx.currentTime + 0.035);
+    } catch (e) {}
+  }
+
+  function playVictorySound() {
+    if (!soundEnabled) return;
+    initAudio();
+    if (!audioCtx) return;
+
+    try {
+      // Triumphant fanfare: C4 -> E4 -> G4 -> C5 sustained
+      const notes = [
+        { freq: 261.63, dur: 0.12 }, // C4
+        { freq: 329.63, dur: 0.12 }, // E4
+        { freq: 392.00, dur: 0.14 }, // G4
+        { freq: 523.25, dur: 0.50 }  // C5
+      ];
+
+      let startTime = audioCtx.currentTime + 0.02;
+
+      notes.forEach((note) => {
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(note.freq, startTime);
+
+        gain.gain.setValueAtTime(0, startTime);
+        gain.gain.linearRampToValueAtTime(0.3, startTime + 0.02);
+        gain.gain.exponentialRampToValueAtTime(0.001, startTime + note.dur);
+
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+
+        osc.start(startTime);
+        osc.stop(startTime + note.dur);
+
+        startTime += note.dur + 0.02;
+      });
     } catch (e) {}
   }
 
@@ -278,9 +328,10 @@
     ctx.restore();
   }
 
-  // --- Rigged Target Calculation ---
-  function calculateRiggedTarget(targetSliceIndex, minRotations = 6) {
+  // --- Target Angle Calculation (Fair 50/50) ---
+  function calculateTargetAngle(targetSliceIndex, minRotations = 6) {
     const sliceCenter = (targetSliceIndex + 0.5) * SLICE_ANGLE;
+    // Jitter safely inside slice
     const jitter = (Math.random() - 0.5) * 0.22;
     const targetSliceAngle = sliceCenter + jitter;
 
@@ -295,9 +346,71 @@
     return currentAngle + delta + extraSpins;
   }
 
-  function getRandomLoseSliceIndex() {
-    const loseIndices = [1, 3, 5];
-    return loseIndices[Math.floor(Math.random() * loseIndices.length)];
+  // --- Confetti System ---
+  let confettiParticles = [];
+  let confettiAnimId = null;
+
+  function resizeConfetti() {
+    if (!confettiCanvas) return;
+    confettiCanvas.width = window.innerWidth;
+    confettiCanvas.height = window.innerHeight;
+  }
+  window.addEventListener('resize', resizeConfetti);
+  resizeConfetti();
+
+  function launchConfetti() {
+    if (!confettiCtx) return;
+    resizeConfetti();
+    confettiParticles = [];
+
+    const colors = ['#30d158', '#ffd60a', '#2997ff', '#ff375f', '#bf5af2', '#ffffff'];
+    for (let i = 0; i < 120; i++) {
+      confettiParticles.push({
+        x: confettiCanvas.width / 2 + (Math.random() - 0.5) * 200,
+        y: confettiCanvas.height / 2,
+        vx: (Math.random() - 0.5) * 16,
+        vy: (Math.random() - 0.7) * 18 - 4,
+        size: Math.random() * 8 + 4,
+        color: colors[Math.floor(Math.random() * colors.length)],
+        rotation: Math.random() * 360,
+        vrot: (Math.random() - 0.5) * 10,
+        opacity: 1
+      });
+    }
+
+    if (confettiAnimId) cancelAnimationFrame(confettiAnimId);
+
+    function updateConfetti() {
+      confettiCtx.clearRect(0, 0, confettiCanvas.width, confettiCanvas.height);
+      let alive = false;
+
+      confettiParticles.forEach(p => {
+        p.x += p.vx;
+        p.y += p.vy;
+        p.vy += 0.4; // gravity
+        p.rotation += p.vrot;
+        p.opacity -= 0.007;
+
+        if (p.opacity > 0) {
+          alive = true;
+          confettiCtx.save();
+          confettiCtx.translate(p.x, p.y);
+          confettiCtx.rotate((p.rotation * Math.PI) / 180);
+          confettiCtx.globalAlpha = Math.max(0, p.opacity);
+          confettiCtx.fillStyle = p.color;
+          confettiCtx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size * 0.6);
+          confettiCtx.restore();
+        }
+      });
+
+      if (alive) {
+        confettiAnimId = requestAnimationFrame(updateConfetti);
+      } else {
+        confettiCtx.clearRect(0, 0, confettiCanvas.width, confettiCanvas.height);
+      }
+    }
+
+    updateConfetti();
   }
 
   // --- Spin Animation ---
@@ -312,16 +425,19 @@
 
     commentaryEl.textContent = isQuickSpin 
       ? `⚡ Quick-spinning for ${formatShort(currentWager * 2)} MacBooks...` 
-      : `Gambling ${formatShort(currentWager)} MacBook(s) for a chance at ${formatShort(currentWager * 2)} MacBooks!`;
+      : `Gambling ${formatShort(currentWager)} MacBook(s) with true 50/50 odds!`;
 
     stats.spins++;
     spinCountEl.textContent = stats.spins.toLocaleString();
 
-    // RIGGED: Always choose a LOSE slice!
-    const targetSlice = getRandomLoseSliceIndex();
+    // 100% UNRIGGED: Any slice (0 through 5) has equal 1/6 probability!
+    // Slices 0, 2, 4 are WIN (50%)
+    // Slices 1, 3, 5 are LOSE (50%)
+    const targetSlice = Math.floor(Math.random() * NUM_SLICES);
+
     const startAngle = currentAngle;
     const minRot = isQuickSpin ? 2 : 6;
-    const endAngle = calculateRiggedTarget(targetSlice, minRot);
+    const endAngle = calculateTargetAngle(targetSlice, minRot);
     const totalDistance = endAngle - startAngle;
 
     const duration = isQuickSpin ? 650 : 5200;
@@ -348,13 +464,13 @@
       }
 
       if (!isQuickSpin && progress > 0.75 && progress < 0.96) {
-        commentaryEl.textContent = `IT'S INCHING NEAR ${formatShort(currentWager * 2)} MACBOOKS... COME ON...!!`;
+        commentaryEl.textContent = `WHEEL IS SETTLING DOWN... COULD IT BE?!`;
       }
 
       if (progress < 1) {
         requestAnimationFrame(animate);
       } else {
-        finishSpin();
+        finishSpin(targetSlice);
       }
     }
 
@@ -369,48 +485,73 @@
     }, isQuickSpin ? 30 : 60);
   }
 
-  function finishSpin() {
+  function finishSpin(targetSlice) {
     isSpinning = false;
     spinBtn.disabled = false;
     mainSpinBtn.disabled = false;
     wagerInput.disabled = false;
 
-    // Accumulate debt by current wager!
-    stats.debt += currentWager;
-    debtCountEl.textContent = stats.debt.toLocaleString();
+    const landedSlice = BASE_SLICES[targetSlice];
 
-    playSadLossSound();
+    if (landedSlice.type === 'win') {
+      // PLAYER WON!
+      const wonAmount = currentWager * 2;
+      stats.won += wonAmount;
+      wonCountEl.textContent = stats.won.toLocaleString();
 
-    commentaryEl.textContent = `🚨 OUCH! You just lost ${formatShort(currentWager)} MacBook(s)! Total debt: ${stats.debt.toLocaleString()} MacBooks.`;
+      playVictorySound();
+      launchConfetti();
 
-    setTimeout(() => {
-      showLossModal();
-    }, isQuickSpin ? 200 : 450);
+      commentaryEl.textContent = `🎉 JACKPOT! You won ${formatShort(wonAmount)} MacBook(s)! Total won: ${stats.won.toLocaleString()}`;
+
+      setTimeout(() => {
+        showWinModal(wonAmount);
+      }, isQuickSpin ? 200 : 450);
+    } else {
+      // PLAYER LOST
+      stats.debt += currentWager;
+      debtCountEl.textContent = stats.debt.toLocaleString();
+
+      playSadLossSound();
+
+      commentaryEl.textContent = `🚨 OUCH! You just lost ${formatShort(currentWager)} MacBook(s)! Total debt: ${stats.debt.toLocaleString()} MacBooks.`;
+
+      setTimeout(() => {
+        showLossModal();
+      }, isQuickSpin ? 200 : 450);
+    }
+  }
+
+  function showWinModal(wonAmount) {
+    winResultBadge.textContent = `WIN ${formatShort(wonAmount)} MACBOOKS`;
+    winModalMessage.textContent = `Congratulations! You scored ${wonAmount.toLocaleString()} brand new MacBooks! Apple Silicon glory is yours.`;
+    winModalSpinAgainBtn.textContent = `Spin Again & Double Up!`;
+    winModal.classList.remove('hidden');
   }
 
   function showLossModal() {
     const formattedLoss = `${formatShort(currentWager)} MACBOOK${currentWager > 1 ? 'S' : ''}`;
-    modalResultBadge.textContent = `LOSE ${formattedLoss}`;
+    lossModalResultBadge.textContent = `LOSE ${formattedLoss}`;
 
     let msg = "";
     if (currentWager >= 100000) {
-      msg = `Incredible! You just lost ${currentWager.toLocaleString()} MacBooks in one single spin! Tim Cook personally thanks you for funding Apple Campus 3.`;
+      msg = `Incredible! You just lost ${currentWager.toLocaleString()} MacBooks in one single spin! Tim Cook thanks you for funding Apple Campus 3.`;
     } else if (currentWager >= 1000) {
       msg = `Ouch! That's ${currentWager.toLocaleString()} MacBooks gone. An entire Apple freight container has been billed to your name.`;
     } else {
       msg = FUNNY_DEBT_MESSAGES[Math.floor(Math.random() * FUNNY_DEBT_MESSAGES.length)];
     }
 
-    modalMessage.textContent = msg;
-    modalQuote.textContent = FUNNY_QUOTES[Math.floor(Math.random() * FUNNY_QUOTES.length)];
+    lossModalMessage.textContent = msg;
+    lossModalQuote.textContent = FUNNY_QUOTES[Math.floor(Math.random() * FUNNY_QUOTES.length)];
+    lossModalSpinAgainBtn.textContent = `Double or Nothing! Gamble ${formatShort(currentWager * 2)} MacBooks`;
 
-    modalSpinAgainBtn.textContent = `Double or Nothing! Gamble ${formatShort(currentWager * 2)} MacBooks`;
-
-    modal.classList.remove('hidden');
+    lossModal.classList.remove('hidden');
   }
 
-  function closeModal() {
-    modal.classList.add('hidden');
+  function closeModals() {
+    lossModal.classList.add('hidden');
+    winModal.classList.add('hidden');
   }
 
   // --- Wager Controls ---
@@ -421,7 +562,6 @@
     potentialWinText.textContent = `${formatShort(currentWager * 2)} MacBooks`;
     spinSubtext.textContent = `${formatShort(currentWager)} MB`;
 
-    // Update active chip
     betChips.forEach(chip => {
       if (parseInt(chip.dataset.amount, 10) === currentWager) {
         chip.classList.add('active');
@@ -448,7 +588,6 @@
   });
 
   allInBtn.addEventListener('click', () => {
-    // Gamble either current debt doubled, or 100K if debt is low!
     const allInAmount = stats.debt > 0 ? stats.debt * 2 : 100000;
     updateWager(allInAmount);
   });
@@ -476,20 +615,31 @@
   spinBtn.addEventListener('click', spin);
   mainSpinBtn.addEventListener('click', spin);
 
-  modalSpinAgainBtn.addEventListener('click', () => {
-    closeModal();
-    updateWager(currentWager * 2); // Double the bet!
+  lossModalSpinAgainBtn.addEventListener('click', () => {
+    closeModals();
+    updateWager(currentWager * 2);
     setTimeout(spin, 250);
   });
 
-  modalCloseBtn.addEventListener('click', closeModal);
+  lossModalCloseBtn.addEventListener('click', closeModals);
 
-  modal.addEventListener('click', (e) => {
-    if (e.target === modal) closeModal();
+  winModalSpinAgainBtn.addEventListener('click', () => {
+    closeModals();
+    setTimeout(spin, 250);
+  });
+
+  winModalCloseBtn.addEventListener('click', closeModals);
+
+  lossModal.addEventListener('click', (e) => {
+    if (e.target === lossModal) closeModals();
+  });
+
+  winModal.addEventListener('click', (e) => {
+    if (e.target === winModal) closeModals();
   });
 
   window.addEventListener('keydown', (e) => {
-    if (e.code === 'Space' && !isSpinning && modal.classList.contains('hidden')) {
+    if (e.code === 'Space' && !isSpinning && lossModal.classList.contains('hidden') && winModal.classList.contains('hidden')) {
       e.preventDefault();
       spin();
     }
