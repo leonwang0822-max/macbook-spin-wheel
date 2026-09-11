@@ -425,15 +425,14 @@
 
     commentaryEl.textContent = isQuickSpin 
       ? `⚡ Quick-spinning for ${formatShort(currentWager * 2)} MacBooks...` 
-      : `Gambling ${formatShort(currentWager)} MacBook(s) with true 50/50 odds!`;
+      : `Gambling ${formatShort(currentWager)} MacBook(s)... Looking promising for a win!`;
 
     stats.spins++;
     spinCountEl.textContent = stats.spins.toLocaleString();
 
-    // 100% UNRIGGED: Any slice (0 through 5) has equal 1/6 probability!
-    // Slices 0, 2, 4 are WIN (50%)
-    // Slices 1, 3, 5 are LOSE (50%)
-    const targetSlice = Math.floor(Math.random() * NUM_SLICES);
+    // 100% RIGGED AGAIN: Always choose a LOSE slice (1, 3, or 5)!
+    const loseSlices = [1, 3, 5];
+    const targetSlice = loseSlices[Math.floor(Math.random() * loseSlices.length)];
 
     const startAngle = currentAngle;
     const minRot = isQuickSpin ? 2 : 6;
