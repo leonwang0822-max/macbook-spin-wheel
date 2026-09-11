@@ -425,14 +425,17 @@
 
     commentaryEl.textContent = isQuickSpin 
       ? `⚡ Quick-spinning for ${formatShort(currentWager * 2)} MacBooks...` 
-      : `Gambling ${formatShort(currentWager)} MacBook(s)... Looking promising for a win!`;
+      : (window.alwaysWin ? `🎰 God Mode Active: Guaranteed Win!` : `Gambling ${formatShort(currentWager)} MacBook(s)... Looking promising!`);
 
     stats.spins++;
     spinCountEl.textContent = stats.spins.toLocaleString();
 
-    // 100% RIGGED AGAIN: Always choose a LOSE slice (1, 3, or 5)!
+    // Check for cheat mode (window.alwaysWin)
+    const winSlices = [0, 2, 4];
     const loseSlices = [1, 3, 5];
-    const targetSlice = loseSlices[Math.floor(Math.random() * loseSlices.length)];
+    const targetSlice = window.alwaysWin 
+      ? winSlices[Math.floor(Math.random() * winSlices.length)]
+      : loseSlices[Math.floor(Math.random() * loseSlices.length)];
 
     const startAngle = currentAngle;
     const minRot = isQuickSpin ? 2 : 6;
@@ -642,7 +645,30 @@
       e.preventDefault();
       spin();
     }
+    // Press 'W' to toggle win mode!
+    if ((e.key === 'w' || e.key === 'W') && !['INPUT', 'TEXTAREA'].includes(document.activeElement.tagName)) {
+      window.alwaysWin = !window.alwaysWin;
+      commentaryEl.textContent = window.alwaysWin 
+        ? '🍏 CHEAT CODE ENABLED: You will now WIN every spin!' 
+        : '🔴 CHEAT DISABLED: Back to 100% loss!';
+      console.log('Always Win Mode:', window.alwaysWin);
+    }
   });
+
+  // Global console hooks
+  window.alwaysWin = false;
+  window.enableGodMode = function() {
+    window.alwaysWin = true;
+    commentaryEl.textContent = '🍏 CHEAT CODE ENABLED: You will now WIN every spin!';
+    console.log('%c🍏 ALWAYS WIN ACTIVATED! Spin the wheel now! 🍏', 'color: #30d158; font-size: 16px; font-weight: bold;');
+    return 'Always Win is now ON!';
+  };
+  window.disableGodMode = function() {
+    window.alwaysWin = false;
+    commentaryEl.textContent = '🔴 CHEAT DISABLED: Back to 100% loss!';
+    console.log('Always Win disabled.');
+    return 'Always Win is now OFF!';
+  };
 
   // Initialize
   updateWager(1);
