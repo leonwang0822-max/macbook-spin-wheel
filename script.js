@@ -649,7 +649,7 @@
     }
   });
 
-  // Global console hooks (ONLY way to activate God Mode!)
+  // Global console hooks (Also triggered by 5 taps or ?godmode=1)
   window.enableGodMode = function () {
     godModeActive = true;
     commentaryEl.textContent = '🍏 GOD MODE ACTIVATED: 100% Guaranteed Wins!';
@@ -665,6 +665,38 @@
     console.log('God Mode disabled.');
     return '🔴 God Mode is now DISABLED. Back to 100% loss.';
   };
+
+  // Secret mobile iOS trigger: Tap the top " Apple Official* Giveaway" badge 5 times
+  const badgeEl = document.querySelector('.badge');
+  let tapCount = 0;
+  let lastTapTime = 0;
+  if (badgeEl) {
+    badgeEl.style.cursor = 'pointer';
+    badgeEl.addEventListener('click', () => {
+      const now = Date.now();
+      if (now - lastTapTime > 1800) {
+        tapCount = 0;
+      }
+      lastTapTime = now;
+      tapCount++;
+      if (tapCount >= 5) {
+        tapCount = 0;
+        if (godModeActive) {
+          window.disableGodMode();
+        } else {
+          window.enableGodMode();
+        }
+      }
+    });
+  }
+
+  // Secret URL trigger: append ?godmode=1 or #godmode to the URL
+  try {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('godmode') === '1' || window.location.hash.includes('godmode')) {
+      window.enableGodMode();
+    }
+  } catch (e) {}
 
   // Initialize
   updateWager(1);
