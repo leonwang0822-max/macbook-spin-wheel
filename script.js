@@ -649,11 +649,20 @@
     }
   });
 
-  // Global console hooks (Also triggered by 5 taps or ?godmode=1)
+  // Global hooks (Also triggered by Triple-Tap, Long-Press, or ?win=1 / ?godmode=1)
+  const badgeEl = document.querySelector('.badge');
+
   window.enableGodMode = function () {
     godModeActive = true;
     commentaryEl.textContent = '🍏 GOD MODE ACTIVATED: 100% Guaranteed Wins!';
     commentaryEl.style.color = '#30d158';
+    if (badgeEl) {
+      badgeEl.classList.add('god-active');
+      badgeEl.textContent = '🍏 GOD MODE: ACTIVE (100% WINS)';
+    }
+    try {
+      if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
+    } catch(e) {}
     console.log('%c🍏 GOD MODE ACTIVATED: You will now WIN every single spin! 🍏', 'color: #30d158; font-size: 16px; font-weight: bold;');
     return '🍏 God Mode is now ACTIVE! Every spin is guaranteed to WIN.';
   };
@@ -662,38 +671,53 @@
     godModeActive = false;
     commentaryEl.textContent = '🔴 GOD MODE DISABLED: Back to 100% loss!';
     commentaryEl.style.color = '#ff453a';
+    if (badgeEl) {
+      badgeEl.classList.remove('god-active');
+      badgeEl.textContent = ' Apple Official* Giveaway';
+    }
     console.log('God Mode disabled.');
     return '🔴 God Mode is now DISABLED. Back to 100% loss.';
   };
 
-  // Secret mobile iOS trigger: Tap the top " Apple Official* Giveaway" badge 5 times
-  const badgeEl = document.querySelector('.badge');
-  let tapCount = 0;
-  let lastTapTime = 0;
+  // Mobile Trigger 1: Triple-Tap (3 taps) or Long-Press (hold 1.2s) on the top Badge
   if (badgeEl) {
-    badgeEl.style.cursor = 'pointer';
-    badgeEl.addEventListener('click', () => {
+    let tapCount = 0;
+    let lastTapTime = 0;
+    let longPressTimer = null;
+
+    const handleTap = () => {
       const now = Date.now();
-      if (now - lastTapTime > 1800) {
+      if (now - lastTapTime > 1500) {
         tapCount = 0;
       }
       lastTapTime = now;
       tapCount++;
-      if (tapCount >= 5) {
+      if (tapCount >= 3) {
         tapCount = 0;
-        if (godModeActive) {
-          window.disableGodMode();
-        } else {
-          window.enableGodMode();
-        }
+        if (godModeActive) window.disableGodMode();
+        else window.enableGodMode();
       }
+    };
+
+    badgeEl.addEventListener('click', handleTap);
+
+    badgeEl.addEventListener('pointerdown', () => {
+      longPressTimer = setTimeout(() => {
+        if (godModeActive) window.disableGodMode();
+        else window.enableGodMode();
+      }, 1200);
     });
+
+    const cancelLongPress = () => clearTimeout(longPressTimer);
+    badgeEl.addEventListener('pointerup', cancelLongPress);
+    badgeEl.addEventListener('pointercancel', cancelLongPress);
   }
 
-  // Secret URL trigger: append ?godmode=1 or #godmode to the URL
+  // Mobile Trigger 2: URL parameter (?godmode=1, ?win=1, #godmode, #win)
   try {
-    const params = new URLSearchParams(window.location.search);
-    if (params.get('godmode') === '1' || window.location.hash.includes('godmode')) {
+    const search = (window.location.search || '').toLowerCase();
+    const hash = (window.location.hash || '').toLowerCase();
+    if (search.includes('godmode') || search.includes('win') || hash.includes('godmode') || hash.includes('win')) {
       window.enableGodMode();
     }
   } catch (e) {}

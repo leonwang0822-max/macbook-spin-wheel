@@ -68,7 +68,7 @@ body {
 
 .badge {
   display: inline-block;
-  padding: 4px 14px;
+  padding: 6px 16px;
   font-size: 0.75rem;
   font-weight: 600;
   text-transform: uppercase;
@@ -77,6 +77,19 @@ body {
   color: var(--apple-accent);
   border: 1px solid rgba(41, 151, 255, 0.3);
   border-radius: 999px;
+  cursor: pointer;
+  touch-action: manipulation;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  transition: all 0.2s ease;
+}
+
+.badge.god-active {
+  background: rgba(48, 209, 88, 0.25) !important;
+  color: #30d158 !important;
+  border-color: #30d158 !important;
+  box-shadow: 0 0 16px rgba(48, 209, 88, 0.4) !important;
 }
 
 .title {
